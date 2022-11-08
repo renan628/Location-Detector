@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "DOTENV_CONFIG_PATH=.env.test node_modules/.bin/jest",
+    "test-coverage": "DOTENV_CONFIG_PATH=.env.test node_modules/.bin/jest --coverage",
     "start:dev": "NODE_ENV=development nodemon",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"

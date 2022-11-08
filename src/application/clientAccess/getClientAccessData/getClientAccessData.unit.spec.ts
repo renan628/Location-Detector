@@ -18,7 +18,7 @@ const MockedData = {
 };
 
 class MockHttpRequest implements IHttpRequest {
-  get = jest.fn(async (path: string, query?: Map<string, string>) => {
+  get = jest.fn(async (path: string, query?: Record<string, unknown>) => {
     return MockedData;
   });
 }
