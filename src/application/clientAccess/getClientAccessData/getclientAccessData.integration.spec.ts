@@ -33,7 +33,7 @@ describe("Get client data use case unit test", () => {
   const apiURL: string = process.env.API_URL || "http://api.ipstack.com";
   const apiKey: string = process.env.API_KEY;
   const outputTopic: string = process.env.OUTPUT_TOPIC || "output";
-  const cacheTime = parseInt(process.env.REDIS_CACHE_TIME);
+  const cacheTime = parseInt(process.env.REDIS_CACHE_TIME) || 30;
 
   beforeAll(async () => {
     //Kafka set up
@@ -171,7 +171,7 @@ describe("Get client data use case unit test", () => {
     expect(cacheSetSpy).not.toHaveBeenCalledWith(
       cacheKey,
       JSON.stringify(expectedOutput),
-      30,
+      cacheTime,
     );
     expect(producerSendSpy).not.toHaveBeenCalledWith(outputTopic, {
       value: expectedOutput,

@@ -4,6 +4,7 @@ import { ICache } from "../cache.interface";
 
 describe("Redis cache unit test", () => {
   let redisCache: ICache;
+  const cacheTime: number = parseInt(process.env.REDIS_CACHE_TIME) || 30;
 
   beforeAll(async () => {
     redisCache = new RedisCache({
@@ -23,7 +24,9 @@ describe("Redis cache unit test", () => {
     const key = "key1";
     const value = "value1";
 
-    await expect(redisCache.set(key, value, 30)).resolves.toEqual(undefined);
+    await expect(redisCache.set(key, value, cacheTime)).resolves.toEqual(
+      undefined,
+    );
     await expect(redisCache.get(key)).resolves.toEqual(value);
   });
 
@@ -31,7 +34,9 @@ describe("Redis cache unit test", () => {
     const key = "key2";
     const value = "value2";
 
-    await expect(redisCache.set(key, value, 30)).resolves.toEqual(undefined);
+    await expect(redisCache.set(key, value, cacheTime)).resolves.toEqual(
+      undefined,
+    );
     await expect(redisCache.get(key)).resolves.toEqual(value);
     await expect(redisCache.delete(key)).resolves.toEqual(undefined);
     await expect(redisCache.get(key)).resolves.toBeFalsy();

@@ -62,6 +62,7 @@ describe("Get client data use case unit test", () => {
   let input: InputClientAccessDTO;
   let expectedOutput: OutputClientAccessDTO;
   const outputTopic: string = process.env.OUTPUT_TOPIC || "output";
+  const cacheTime: number = parseInt(process.env.REDIS_CACHE_TIME) || 30;
 
   beforeAll(() => {
     input = {
@@ -109,7 +110,7 @@ describe("Get client data use case unit test", () => {
     expect(localMockCache.set).toHaveBeenCalledWith(
       cacheKey,
       JSON.stringify(expectedOutput),
-      30,
+      cacheTime,
     );
     expect(localMockStreamProducer.send).toHaveBeenCalled();
     expect(localMockStreamProducer.send).toHaveBeenCalledWith(outputTopic, {
@@ -132,7 +133,7 @@ describe("Get client data use case unit test", () => {
       localMockCache,
     );
 
-    localMockCache.set(cacheKey, JSON.stringify(expectedOutput), 30);
+    localMockCache.set(cacheKey, JSON.stringify(expectedOutput), cacheTime);
 
     await expect(
       getClientAccessDataUseCase.execute(localInput),
@@ -160,7 +161,11 @@ describe("Get client data use case unit test", () => {
       localMockCache,
     );
 
-    localMockCache.set(localInput.ip, JSON.stringify(cachedExpectedOutput), 30);
+    localMockCache.set(
+      localInput.ip,
+      JSON.stringify(cachedExpectedOutput),
+      cacheTime,
+    );
     jest.runOnlyPendingTimers();
 
     await expect(
@@ -177,7 +182,7 @@ describe("Get client data use case unit test", () => {
     expect(localMockCache.set).toHaveBeenCalledWith(
       cacheKey,
       JSON.stringify(cachedExpectedOutput),
-      30,
+      cacheTime,
     );
     expect(localMockStreamProducer.send).toHaveBeenCalled();
     expect(localMockStreamProducer.send).toHaveBeenCalledWith(outputTopic, {
