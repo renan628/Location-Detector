@@ -10,14 +10,14 @@ describe("Redis cache unit test", () => {
       host: process.env.REDIS_HOST || "localhost",
       port: parseInt(process.env.REDIS_PORT) || 6379,
       maxRetriesPerRequest: 1,
-      lazyConnect: true
+      lazyConnect: true,
     });
     await redisCache.start();
   });
 
   afterAll(async () => {
     await redisCache.stop();
-  })
+  });
 
   it("Should set and get a value in cache", async () => {
     const key = "key1";
@@ -47,4 +47,4 @@ describe("Redis cache unit test", () => {
     await sleep(1);
     await expect(redisCache.get(key)).resolves.toBeFalsy();
   });
-})
+});

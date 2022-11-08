@@ -4,7 +4,6 @@ import { KafkaConsumer, waitForKafkaMessages } from "./consumer";
 import { KafkaProducer } from "./producer";
 import { Admin, Kafka, logLevel, Partitioners } from "kafkajs";
 
-
 const oneMessageTopic = "test-one-message";
 const batchMessageTopic = "test-batch-message";
 
@@ -12,19 +11,19 @@ const messages = [
   {
     key: "key1",
     value: {
-      attribute: "attributeValue1"
+      attribute: "attributeValue1",
     },
   },
   {
     key: "key2",
     value: {
-      attribute: "attributeValue2"
+      attribute: "attributeValue2",
     },
   },
   {
     key: "key3",
     value: {
-      attribute: "attributeValue3"
+      attribute: "attributeValue3",
     },
   },
 ];
@@ -39,8 +38,8 @@ describe("Kafka stream unit test", () => {
     kafka = new Kafka({
       brokers: process.env.KAFKA_BROKERS?.split(";") || ["localhost:9094"],
       clientId: process.env.KAFKA_CLIENT_ID || "client",
-      logLevel: parseInt(process.env.KAFKA_LOG_LEVEL) || logLevel.INFO
-    })
+      logLevel: parseInt(process.env.KAFKA_LOG_LEVEL) || logLevel.INFO,
+    });
     kafkaConsumer = new KafkaConsumer(kafka, {
       groupId: Date.now() + "_" + "kafkaTest",
     });
@@ -64,22 +63,26 @@ describe("Kafka stream unit test", () => {
 
     await kafkaAdmin.createTopics({
       waitForLeaders: true,
-      topics: [
-        { topic: topicName }
-      ]
+      topics: [{ topic: topicName }],
     });
 
     const message = messages[0];
     await kafkaProducer.start();
     await kafkaProducer.send(topicName, message);
 
-    const receivedMessages = await waitForKafkaMessages(kafka, 1, topicName, true, groupId);
+    const receivedMessages = await waitForKafkaMessages(
+      kafka,
+      1,
+      topicName,
+      true,
+      groupId,
+    );
     expect(receivedMessages).toHaveLength(1);
     expect(receivedMessages[0]).toEqual(messages[0]);
 
     await kafkaProducer.stop();
     await kafkaAdmin.deleteTopics({
-      topics: [topicName]
+      topics: [topicName],
     });
   }, 10000);
 
@@ -89,15 +92,19 @@ describe("Kafka stream unit test", () => {
 
     await kafkaAdmin.createTopics({
       waitForLeaders: true,
-      topics: [
-        { topic: topicName }
-      ]
-    })
+      topics: [{ topic: topicName }],
+    });
 
     await kafkaProducer.start();
     await kafkaProducer.sendBatch(topicName, messages);
 
-    const receivedMessages = await waitForKafkaMessages(kafka, 3, topicName, true, groupId);
+    const receivedMessages = await waitForKafkaMessages(
+      kafka,
+      3,
+      topicName,
+      true,
+      groupId,
+    );
     expect(receivedMessages).toHaveLength(messages.length);
     expect(receivedMessages[0]).toEqual(messages[0]);
     expect(receivedMessages[1]).toEqual(messages[1]);
@@ -105,24 +112,22 @@ describe("Kafka stream unit test", () => {
 
     await kafkaProducer.stop();
     await kafkaAdmin.deleteTopics({
-      topics: [topicName]
+      topics: [topicName],
     });
   }, 10000);
 
   it("Should consume messages from a topic and call the registered handler", async () => {
-    let resolveOnConsumption: (messages: any) => void
-    let rejectOnError: (e: Error) => void
+    let resolveOnConsumption: (messages: any) => void;
+    let rejectOnError: (e: Error) => void;
     const consumingPromise = new Promise<void>((resolve, reject) => {
-      resolveOnConsumption = resolve
-      rejectOnError = reject
+      resolveOnConsumption = resolve;
+      rejectOnError = reject;
     });
-    
+
     const topicName: string = Date.now() + "_" + oneMessageTopic;
     await kafkaAdmin.createTopics({
       waitForLeaders: true,
-      topics: [
-        { topic: topicName }
-      ]
+      topics: [{ topic: topicName }],
     });
 
     const receivedMessages = [];
@@ -136,13 +141,13 @@ describe("Kafka stream unit test", () => {
     };
 
     const messageHandler = new Map<string, IEventHandler>([
-      [topicName, proccessMessage]
+      [topicName, proccessMessage],
     ]);
 
     await kafkaProducer.start();
     await kafkaProducer.sendBatch(topicName, messages);
 
-    await kafkaConsumer.registerHandlers(messageHandler)
+    await kafkaConsumer.registerHandlers(messageHandler);
     await kafkaConsumer.start();
 
     const resolvedMessages = await consumingPromise;
@@ -155,8 +160,7 @@ describe("Kafka stream unit test", () => {
     await kafkaProducer.stop();
     await kafkaConsumer.stop();
     await kafkaAdmin.deleteTopics({
-      topics: [topicName]
-    })
-  
-  }, 10000)
+      topics: [topicName],
+    });
+  }, 10000);
 });

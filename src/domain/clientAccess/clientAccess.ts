@@ -7,4 +7,4 @@ export type ClientAccessData = {
   country: string;
   region: string;
   city: string;
-}
+};

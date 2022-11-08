@@ -1,3 +1,3 @@
 export interface IHttpRequest {
-  get(path: string, query?: Object): Promise<any>
+  get(path: string, query?: Record<string, unknown>): Promise<any>;
 }

@@ -3,3 +3,4 @@ tsconfig.tsbuildinfo
 **/dist
 **/node_modules
 cmds
+package-lock.json

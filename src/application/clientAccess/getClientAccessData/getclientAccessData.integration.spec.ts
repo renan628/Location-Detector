@@ -9,17 +9,19 @@ import { IHttpRequest } from "../../../infra/http/@core/http.interface";
 import { AccessGeolocationAPI } from "../../../infra/http/access-geolocation/access-geolocation-api";
 import { KafkaProducer } from "../../../infra/stream/@core/kafka/producer";
 import { IProducer } from "../../../infra/stream/@core/producer.interface";
-import { InputClientAccessDTO, OutputClientAccessDTO } from "./getClientAccessData.dto";
+import {
+  InputClientAccessDTO,
+  OutputClientAccessDTO,
+} from "./getClientAccessData.dto";
 import { GetClientAccessDataUseCase } from "./getClientAccessData.usecase";
 
-
 const MockedData = {
-  "country_name": "United States",
-  "region_name": "California",
-  "city": "Los Angeles",
-  "latitude": 34.0453,
-  "longitude": -118.2413,
-}
+  country_name: "United States",
+  region_name: "California",
+  city: "Los Angeles",
+  latitude: 34.0453,
+  longitude: -118.2413,
+};
 
 describe("Get client data use case unit test", () => {
   let kafka: Kafka;
@@ -38,8 +40,8 @@ describe("Get client data use case unit test", () => {
     kafka = new Kafka({
       brokers: process.env.KAFKA_BROKERS?.split(";") || ["localhost:9094"],
       clientId: process.env.KAFKA_CLIENT_ID || "client",
-      logLevel: parseInt(process.env.KAFKA_LOG_LEVEL) || logLevel.INFO
-    })
+      logLevel: parseInt(process.env.KAFKA_LOG_LEVEL) || logLevel.INFO,
+    });
     producer = new KafkaProducer(kafka, {
       createPartitioner: Partitioners.DefaultPartitioner,
       ack: 1,
@@ -51,7 +53,7 @@ describe("Get client data use case unit test", () => {
     //Axios/api set up
     apiRequester = new AccessGeolocationAPI(
       new AxiosHttpRequest(apiURL),
-      apiKey
+      apiKey,
     );
 
     //Redis set up
@@ -59,7 +61,7 @@ describe("Get client data use case unit test", () => {
       host: process.env.REDIS_HOST || "localhost",
       port: parseInt(process.env.REDIS_PORT) || 6379,
       maxRetriesPerRequest: 5,
-      lazyConnect: true
+      lazyConnect: true,
     });
     await cache.start();
   }, 10000);
@@ -69,7 +71,7 @@ describe("Get client data use case unit test", () => {
       clientID: "I1",
       ip: "134.201.250.155",
       timestamp: 0,
-    }
+    };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
       latitude: MockedData.latitude,
@@ -77,46 +79,52 @@ describe("Get client data use case unit test", () => {
       country: MockedData.country_name,
       region: MockedData.region_name,
       city: MockedData.city,
-    }
-    const cacheKey: string = `${input.clientID}-${input.ip}`
-    
-    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(producer, apiRequester, cache);
+    };
+    const cacheKey = `${input.clientID}-${input.ip}`;
+    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(
+      producer,
+      apiRequester,
+      cache,
+    );
 
-    const nockPath = `/${input.ip}?${qs.stringify({
-      access_key: apiKey,
-      fields:
-        [
-        "latitude",
-        "longitude",
-        "country_name",
-        "region_name",
-        "city"
-      ]
-    }, { arrayFormat: "comma" })}`;
+    const nockPath = `/${input.ip}?${qs.stringify(
+      {
+        access_key: apiKey,
+        fields: [
+          "latitude",
+          "longitude",
+          "country_name",
+          "region_name",
+          "city",
+        ],
+      },
+      { arrayFormat: "comma" },
+    )}`;
 
-    nock(apiURL)
-    .get(nockPath)
-    .reply(200, MockedData)
+    nock(apiURL).get(nockPath).reply(200, MockedData);
 
     const cacheGetSpy = jest.spyOn(cache, "get");
     const apiRequesterGetSpy = jest.spyOn(apiRequester, "get");
     const cacheSetSpy = jest.spyOn(cache, "set");
     const producerSendSpy = jest.spyOn(producer, "send");
 
-    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(undefined);
+    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(
+      undefined,
+    );
 
     expect(cacheGetSpy).toHaveBeenCalledWith(cacheKey);
     expect(apiRequesterGetSpy).toHaveBeenCalledWith(`/${input.ip}`, {
-      fields: [
-        "latitude",
-        "longitude",
-        "country_name",
-        "region_name",
-        "city"
-      ]
+      fields: ["latitude", "longitude", "country_name", "region_name", "city"],
     });
-    expect(cacheSetSpy).toHaveBeenCalledWith(cacheKey, JSON.stringify(expectedOutput), cacheTime);
-    expect(producerSendSpy).toHaveBeenCalledWith(outputTopic, { value: expectedOutput });
+    expect(cacheSetSpy).toHaveBeenCalledWith(
+      cacheKey,
+      JSON.stringify(expectedOutput),
+      cacheTime,
+    );
+    expect(producerSendSpy).toHaveBeenCalledWith(outputTopic, {
+      value: expectedOutput,
+    });
+
     cache.delete(cacheKey);
   });
 
@@ -125,7 +133,7 @@ describe("Get client data use case unit test", () => {
       clientID: "I2",
       ip: "134.201.250.154",
       timestamp: 0,
-    }
+    };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
       latitude: MockedData.latitude,
@@ -133,30 +141,42 @@ describe("Get client data use case unit test", () => {
       country: MockedData.country_name,
       region: MockedData.region_name,
       city: MockedData.city,
-    }
-    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(producer, apiRequester, cache);
-    
-    const cacheKey: string = `${input.clientID}-${input.ip}`
-    cache.set(cacheKey, JSON.stringify({ ...expectedOutput, cache: true }), cacheTime);
+    };
+    const cacheKey = `${input.clientID}-${input.ip}`;
+    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(
+      producer,
+      apiRequester,
+      cache,
+    );
+
+    cache.set(
+      cacheKey,
+      JSON.stringify({ ...expectedOutput, cache: true }),
+      cacheTime,
+    );
 
     const cacheGetSpy = jest.spyOn(cache, "get");
     const apiRequesterGetSpy = jest.spyOn(apiRequester, "get");
     const cacheSetSpy = jest.spyOn(cache, "set");
     const producerSendSpy = jest.spyOn(producer, "send");
 
-    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(undefined);
+    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(
+      undefined,
+    );
+
     expect(cacheGetSpy).toHaveBeenCalledWith(cacheKey);
     expect(apiRequesterGetSpy).not.toHaveBeenCalledWith(`/${input.ip}`, {
-      fields: [
-        "latitude",
-        "longitude",
-        "country_name",
-        "region_name",
-        "city"
-      ]
+      fields: ["latitude", "longitude", "country_name", "region_name", "city"],
     });
-    expect(cacheSetSpy).not.toHaveBeenCalledWith(cacheKey, JSON.stringify(expectedOutput), 30);
-    expect(producerSendSpy).not.toHaveBeenCalledWith(outputTopic, { value: expectedOutput });
+    expect(cacheSetSpy).not.toHaveBeenCalledWith(
+      cacheKey,
+      JSON.stringify(expectedOutput),
+      30,
+    );
+    expect(producerSendSpy).not.toHaveBeenCalledWith(outputTopic, {
+      value: expectedOutput,
+    });
+
     cache.delete(cacheKey);
   });
 
@@ -165,7 +185,7 @@ describe("Get client data use case unit test", () => {
       clientID: "I3",
       ip: "134.201.250.153",
       timestamp: 0,
-    }
+    };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
       latitude: MockedData.latitude,
@@ -173,27 +193,30 @@ describe("Get client data use case unit test", () => {
       country: MockedData.country_name,
       region: MockedData.region_name,
       city: MockedData.city,
-    }
+    };
+    const cacheKey = `${input.clientID}-${input.ip}`;
+    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(
+      producer,
+      apiRequester,
+      cache,
+    );
 
-    const getClientAccessDataUseCase = new GetClientAccessDataUseCase(producer, apiRequester, cache);
+    const nockPath = `/${input.ip}?${qs.stringify(
+      {
+        access_key: apiKey,
+        fields: [
+          "latitude",
+          "longitude",
+          "country_name",
+          "region_name",
+          "city",
+        ],
+      },
+      { arrayFormat: "comma" },
+    )}`;
 
-    const nockPath = `/${input.ip}?${qs.stringify({
-      access_key: apiKey,
-      fields:
-        [
-        "latitude",
-        "longitude",
-        "country_name",
-        "region_name",
-        "city"
-      ]
-    }, { arrayFormat: "comma" })}`;
+    nock(apiURL).get(nockPath).reply(200, MockedData);
 
-    nock(apiURL)
-    .get(nockPath)
-    .reply(200, MockedData)
-
-    const cacheKey: string = `${input.clientID}-${input.ip}`
     cache.set(cacheKey, JSON.stringify({ ...expectedOutput, cache: true }), 1);
     await sleep(1);
 
@@ -202,20 +225,23 @@ describe("Get client data use case unit test", () => {
     const cacheSetSpy = jest.spyOn(cache, "set");
     const producerSendSpy = jest.spyOn(producer, "send");
 
-    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(undefined);
+    await expect(getClientAccessDataUseCase.execute(input)).resolves.toEqual(
+      undefined,
+    );
 
     expect(cacheGetSpy).toHaveBeenCalledWith(cacheKey);
     expect(apiRequesterGetSpy).toHaveBeenCalledWith(`/${input.ip}`, {
-      fields: [
-        "latitude", 
-        "longitude", 
-        "country_name", 
-        "region_name", 
-        "city"
-      ]
+      fields: ["latitude", "longitude", "country_name", "region_name", "city"],
     });
-    expect(cacheSetSpy).toHaveBeenCalledWith(cacheKey, JSON.stringify(expectedOutput), cacheTime);
-    expect(producerSendSpy).toHaveBeenCalledWith(outputTopic, { value: expectedOutput });
+    expect(cacheSetSpy).toHaveBeenCalledWith(
+      cacheKey,
+      JSON.stringify(expectedOutput),
+      cacheTime,
+    );
+    expect(producerSendSpy).toHaveBeenCalledWith(outputTopic, {
+      value: expectedOutput,
+    });
+
     cache.delete(cacheKey);
   });
-})
+});

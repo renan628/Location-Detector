@@ -9,12 +9,12 @@ export class AccessGeolocationAPI implements IHttpRequest {
     this.apiKey = apiKey;
   }
 
-  async get(path: string, query?: Object): Promise<any> {
+  async get(path: string, query?: Record<string, unknown>): Promise<any> {
     const params = {
       access_key: this.apiKey,
-      ...query
-    }
-    
+      ...query,
+    };
+
     return await this.httpRequester.get(path, params);
   }
 }

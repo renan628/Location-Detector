@@ -11,8 +11,7 @@ export class RedisCache implements ICache {
   async start() {
     try {
       await this.client.connect();
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error("Error starting redis", { cause: err });
     }
   }
@@ -20,21 +19,19 @@ export class RedisCache implements ICache {
   async stop() {
     try {
       await this.client.quit();
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error("Error starting redis", { cause: err });
     }
   }
 
-  async set(key: string, value: string, seconds: number = 0): Promise<void>{
+  async set(key: string, value: string, seconds = 0): Promise<void> {
     try {
       if (seconds) {
-        await this.client.set(key, value, "EX", seconds, "NX");
+        await this.client.set(key, value, "EX", seconds);
         return;
       }
-      await this.client.set(key, value, "NX");
-    }
-    catch (err) {
+      await this.client.set(key, value);
+    } catch (err) {
       throw new Error("Error setting redis value", { cause: err });
     }
   }
@@ -42,8 +39,7 @@ export class RedisCache implements ICache {
   async get(key: string): Promise<string> {
     try {
       return await this.client.get(key);
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error("Error getting redis value", { cause: err });
     }
   }
@@ -51,8 +47,7 @@ export class RedisCache implements ICache {
   async delete(key: string): Promise<void> {
     try {
       await this.client.del(key);
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error("Error deleting redis value", { cause: err });
     }
   }
@@ -61,8 +56,7 @@ export class RedisCache implements ICache {
     try {
       const res = await this.client.ping();
       return res === "PONG";
-    }
-    catch (err) {
+    } catch (err) {
       return false;
     }
   }

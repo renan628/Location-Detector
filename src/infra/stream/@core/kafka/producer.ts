@@ -1,4 +1,10 @@
-import { Kafka, KafkaConfig, logCreator, logLevel, Message, Partitioners, Producer, ProducerBatch, ProducerConfig, ProducerRecord, TopicMessages } from "kafkajs"
+import {
+  Kafka,
+  Message,
+  Producer,
+  ProducerConfig,
+  ProducerRecord,
+} from "kafkajs";
 import { IProducer } from "../producer.interface";
 
 export type KafkaProducerConfig = ProducerConfig & {
@@ -20,67 +26,69 @@ export class KafkaProducer implements IProducer {
   public async start(): Promise<void> {
     try {
       await this.producer.connect();
-    } 
-    catch (err) {
-      throw new Error("Error starting kafka producer", { cause: err })
+    } catch (err) {
+      throw new Error("Error starting kafka producer", { cause: err });
     }
   }
 
   public async stop(): Promise<void> {
     try {
       await this.producer.disconnect();
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error("Error stopping kafka producer", { cause: err });
     }
   }
 
-  public async send(topic: string, message: { key?: string, value: any }): Promise<void> {
+  public async send(
+    topic: string,
+    message: { key?: string; value: any },
+  ): Promise<void> {
     const { key, value } = message;
     const messageF: Message = {
-      value: JSON.stringify(value)
-    }
+      value: JSON.stringify(value),
+    };
     if (key) {
-      messageF.key = key
+      messageF.key = key;
     }
 
     const topicMessages: ProducerRecord = {
       acks: this.ack,
       topic,
       messages: [messageF],
-    }
+    };
 
     try {
-      await this.producer.send(topicMessages)
-    }
-    catch (err) {
+      await this.producer.send(topicMessages);
+    } catch (err) {
       throw new Error("Error sending kafka message", { cause: err });
     }
   }
 
-  public async sendBatch(topic: string, messages: Array<{ key?: string, value: any }>): Promise<void> {
-    const messageF : Array<Message> = messages.map((message) => {
+  public async sendBatch(
+    topic: string,
+    messages: Array<{ key?: string; value: any }>,
+  ): Promise<void> {
+    const messageF: Array<Message> = messages.map((message) => {
       const { key, value } = message;
       const payload: Message = {
-        value: JSON.stringify(value)
-      }
+        value: JSON.stringify(value),
+      };
       if (key) {
-        payload.key = key
+        payload.key = key;
       }
 
       return payload;
-    })
+    });
 
     const topicMessages: ProducerRecord = {
       acks: this.ack,
       topic,
       messages: messageF,
-    }
+    };
 
     try {
-      await this.producer.send(topicMessages)
-    }
-    catch (err) {
+      await this.producer.send(topicMessages);
+    } catch (err) {
       throw new Error("Error sending kafka message batch", { cause: err });
     }
   }
