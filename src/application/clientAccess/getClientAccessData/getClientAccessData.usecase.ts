@@ -26,11 +26,10 @@ export class GetClientAccessDataUseCase {
     try {
       validadeInputClientAccessDTO(input);
 
-      const { clientID, ip } = input;
+      const { clientID, timestamp, ip } = input;
       const cacheKey = `${clientID}-${ip}`;
       console.log("Received new client-ip", cacheKey);
       const cachedValue = await this.cache.get(cacheKey);
-      console.log(cachedValue);
       if (cachedValue) {
         console.log("Returning from cache", cacheKey);
         return;
@@ -49,7 +48,9 @@ export class GetClientAccessDataUseCase {
         });
 
       const output = {
-        ...input,
+        clientID,
+        timestamp,
+        ip,
         latitude,
         longitude,
         country: country_name,
