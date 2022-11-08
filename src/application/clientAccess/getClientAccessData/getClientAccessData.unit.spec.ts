@@ -66,8 +66,8 @@ describe("Get client data use case unit test", () => {
   beforeAll(() => {
     input = {
       clientID: "U1",
-      ip: "134.201.250.155",
       timestamp: 0,
+      ip: "134.201.250.155",
     };
     expectedOutput = {
       ...input,

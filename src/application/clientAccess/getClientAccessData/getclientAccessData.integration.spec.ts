@@ -69,8 +69,8 @@ describe("Get client data use case unit test", () => {
   it("Should get client data from API and send to stream if value is not in cache", async () => {
     const input: InputClientAccessDTO = {
       clientID: "I1",
-      ip: "134.201.250.155",
       timestamp: 0,
+      ip: "134.201.250.155",
     };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
@@ -131,8 +131,8 @@ describe("Get client data use case unit test", () => {
   it("Should get client data from cache and return if value is in cache", async () => {
     const input: InputClientAccessDTO = {
       clientID: "I2",
-      ip: "134.201.250.154",
       timestamp: 0,
+      ip: "134.201.250.154",
     };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
@@ -183,8 +183,8 @@ describe("Get client data use case unit test", () => {
   it("Should get client data from API and send to stream if cache expired", async () => {
     const input: InputClientAccessDTO = {
       clientID: "I3",
-      ip: "134.201.250.153",
       timestamp: 0,
+      ip: "134.201.250.153",
     };
     const expectedOutput: OutputClientAccessDTO = {
       ...input,
