@@ -19,15 +19,19 @@ To run only the app dependencies use the command:
 ```
 docker-compose -f docker-compose-infra.yaml up
 ```
-It"s possible run the app in development mode with:
+Make sure there's only one container instance per dependency to avoid errors. Before each set up call:
+```
+docker-compose down
+```
+It's possible run the app in development mode with:
 ```
 npm run start:dev
 ```
-And it"s possible to execute the [Jest](https://jestjs.io/) tests with
+And it's possible to execute the [Jest](https://jestjs.io/) tests with
 ```
 npm test
 ```
-Both the commands can be runned directly in the host machine, where [Node](https://nodejs.org/en/) version 16 or higher is necessary.
+Both the commands can be runned directly in the host machine, where [Node](https://nodejs.org/en/) version 16 or higher is necessary. 
 
 Optionally a docker container can be used as well. For this, enter the command:
 ```
