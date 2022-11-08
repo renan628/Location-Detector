@@ -2,14 +2,6 @@ import { IHttpRequest } from "../http.interface";
 import axios, { AxiosRequestConfig } from "axios";
 import qs from "qs";
 
-const mockResponse = {
-  "country_name": "United States",
-  "region_name": "California",
-  "city": "Los Angeles",
-  "latitude": 34.0453,
-  "longitude": -118.2413,
-}
-
 export class AxiosHttpRequest implements IHttpRequest {
   private baseURL: string;
 
@@ -20,8 +12,6 @@ export class AxiosHttpRequest implements IHttpRequest {
   async get(path: string, query: Object = null): Promise<any> {
     try {
       const res = await this.request(path, "GET", query);
-
-      //return mockResponse
       return res.data;
     }
     catch (err) {
