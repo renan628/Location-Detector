@@ -81,10 +81,10 @@ export const waitForKafkaMessages = async (
   let resolveOnConsumption: (messages: Message[]) => void;
   let rejectOnError: (e: Error) => void;
 
-  const returnThisPromise = new Promise<Message[]>((resolve, reject) => {
+  const messagePromise = new Promise<Message[]>((resolve, reject) => {
     resolveOnConsumption = resolve;
     rejectOnError = reject;
-  }).finally(() => consumer.disconnect()); // disconnection is done here, reason why is explained below
+  }).finally(() => consumer.disconnect());
 
   const payloads: EachMessagePayload[] = [];
   await consumer.run({
@@ -92,12 +92,9 @@ export const waitForKafkaMessages = async (
     eachMessage: async (eachMessagePayload: EachMessagePayload) => {
       try {
         const { topic, partition, message } = eachMessagePayload;
-        // eachMessage is called by eachBatch which can consume more than messagesAmount.
-        // This is why we manually commit only messagesAmount messages.
         if (payloads.length < messagesAmount) {
           payloads.push(eachMessagePayload);
 
-          // +1 because we need to commit the next assigned offset.
           await consumer.commitOffsets([
             {
               topic,
@@ -108,8 +105,6 @@ export const waitForKafkaMessages = async (
         }
 
         if (payloads.length === messagesAmount) {
-          // I think we should be able to close the connection here, but kafkajs has a bug which makes it hang if consumer.disconnect is called too soon after consumer.run .
-          // This is why we close it in the promise"s finally block
           const formatedMesages = payloads.map((payload) => {
             return {
               key: payload.message.key.toString(),
@@ -125,5 +120,5 @@ export const waitForKafkaMessages = async (
     },
   });
 
-  return returnThisPromise;
+  return messagePromise;
 };
