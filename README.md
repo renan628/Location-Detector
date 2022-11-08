@@ -2,9 +2,9 @@
 This app uses the free [IPStack](https://ipstack.com/) API to get a user geolocation through their IP address.
 
 ## How it works
-1. The app subscribe to a kafka topic called "input"
-2. From this topic the application receives user ID and IP, so this IP is submitted to [IPStack](https://ipstack.com/) which returns the geolocation data. 
-3. The primary user information is added to this new data and the full user information is then sended to another kafka topic called "output";
+1. The app subscribe to a input kafka topic
+2. From this topic the application receives user ID and IP, so this IP is submitted to [IPStack](https://ipstack.com/) which returns the geolocation data
+3. The primary user information is added to this new data and the full user information is then sended to a output kafka topic
 
 Each time a new IP comes from "input" topic, its information is also kept in a [Redis](https://redis.io/) cache, which stores the data for a given time period. If a cached IP arrives from "input", the cache is retrieved and no [IPStack](https://ipstack.com/) request will be made, neither a new message is sent to "output". As soon as the cache expires the regular behavior is re-established.
 
